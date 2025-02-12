@@ -10,16 +10,17 @@ let scene, camera, renderer, cube;
 
       // Scene & Camera
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / 400, 1, 1000);
-      camera.position.set(5, 8, 5); // Adjusted camera position
+      camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / 400, 0.5, 1000);
+      camera.position.set(5, 5, 5); // Adjusted camera position
       camera.lookAt(0, 0, 0);
 
       // Renderer with Transparent Background
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(canvasContainer.clientWidth, 400);
-      renderer.setClearColor(0x000000, 0); // Transparent background
+      renderer.setClearColor(0xfff451, 0); // Transparent background
       canvasContainer.appendChild(renderer.domElement);
 
+      
       // Create Box
       updateBox();
 
@@ -149,3 +150,36 @@ let scene, camera, renderer, cube;
   document.getElementById('rotateRight').addEventListener('click', () => {
       cube.rotation.y -= 0.1;
   });
+
+  // New Features: Upload Image & Input Text
+document.getElementById('uploadImage').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+          const textureLoader = new THREE.TextureLoader();
+          const uploadedTexture = textureLoader.load(event.target.result);
+          cube.material.map = uploadedTexture;
+          cube.material.needsUpdate = true;
+      };
+      reader.readAsDataURL(file);
+  }
+});
+
+document.getElementById('textInput').addEventListener('input', (e) => {
+  const text = e.target.value;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 256;
+  canvas.height = 256;
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText(text, 50, 100);
+
+  const textureLoader = new THREE.TextureLoader();
+  const textTexture = new THREE.CanvasTexture(canvas);
+  cube.material.map = textTexture;
+  cube.material.needsUpdate = true;
+});
