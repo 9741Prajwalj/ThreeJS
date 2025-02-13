@@ -1,6 +1,7 @@
+
 let scene, camera, renderer, cube, floor;
   let geometry, material;
-  let length = 5, width = 5, depth = 5, color = "#FFF452"; // Default values
+  let length = 5, width = 5, depth = 5, color = "#7A4B1F"; // Default values
   let isDragging = false; // Track if the mouse is dragging
   let previousMousePosition = { x: 0, y: 0 }; // Track previous mouse position for rotation
 
@@ -36,8 +37,7 @@ let scene, camera, renderer, cube, floor;
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
       directionalLight.position.set(10, 10, 5);
       directionalLight.castShadow = true;
-      directionalLight.shadow.mapSize.width = 2048;
-      directionalLight.shadow.mapSize.height = 2048;
+      directionalLight.shadow.mapSize.set(2048, 2048);
       scene.add(directionalLight);
 
       // Create Box
@@ -56,19 +56,12 @@ let scene, camera, renderer, cube, floor;
 
       // Add Cursor Controller for 360-Degree Rotation
       const canvas = renderer.domElement;
-      canvas.addEventListener('mousedown', (e) => {
-          isDragging = true;
-      });
-
-      canvas.addEventListener('mouseup', (e) => {
-          isDragging = false;
-      });
-
+      canvas.addEventListener('mousedown', (e) => {isDragging = true;});
+      canvas.addEventListener('mouseup', (e) => {isDragging = false;});
       canvas.addEventListener('mousemove', (e) => {
           if (isDragging) {
               const deltaX = e.clientX - previousMousePosition.x;
               const deltaY = e.clientY - previousMousePosition.y;
-
               // Rotate the cube based on mouse movement
               cube.rotation.y += deltaX * 0.01; // Rotate horizontally
               cube.rotation.x += deltaY * 0.01; // Rotate vertically
@@ -124,7 +117,6 @@ let scene, camera, renderer, cube, floor;
         gsap.to(cube.rotation, { x: rotations[i][0], y: rotations[i][1], duration: 0.8, ease: "power2.out" });
     });
 });
-
 
 // Manual Rotation Controls
 document.getElementById('rotateLeft').addEventListener('click', () => cube.rotation.y += 0.1);
