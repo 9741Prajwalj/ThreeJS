@@ -4,6 +4,7 @@ let scene, camera, renderer, cube, floor;
   let length = 5, width = 5, depth = 5, color = "#7A4B1F"; // Default values
   let isDragging = false; // Track if the mouse is dragging
   let previousMousePosition = { x: 0, y: 0 }; // Track previous mouse position for rotation
+  let isRotating = false;
 
   function initThreeJs() {
       const canvasContainer = document.getElementById('threeCanvas');
@@ -118,9 +119,21 @@ let scene, camera, renderer, cube, floor;
     });
 });
 
-// Manual Rotation Controls
-document.getElementById('rotateLeft').addEventListener('click', () => cube.rotation.y += 0.1);
-document.getElementById('rotateRight').addEventListener('click', () => cube.rotation.y -= 0.1);
+// Create Rotate Button Functionality
+document.getElementById('rotate').addEventListener('click', () => {
+    isRotating = !isRotating; // Toggle rotation
+    if (isRotating) {
+        rotateBox();
+    }
+});
+
+function rotateBox() {
+    if (!isRotating) return;
+    
+    cube.rotation.y += 0.003; // Slow rotation speed
+    
+    requestAnimationFrame(rotateBox);
+}
 
   // New Features: Upload Image & Input Text
 document.getElementById('uploadImage').addEventListener('change', (e) => {
