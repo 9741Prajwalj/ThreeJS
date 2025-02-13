@@ -1,4 +1,4 @@
-let scene, camera, renderer, cube;
+let scene, camera, renderer, cube, floor;
   let geometry, material;
   let length = 5, width = 5, depth = 5, color = "#FFF452"; // Default values
   let isDragging = false; // Track if the mouse is dragging
@@ -10,27 +10,38 @@ let scene, camera, renderer, cube;
 
       // Scene & Camera
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / 400, 0.5, 1000);
+      camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / 400, 0.1, 1000);
       camera.position.set(5, 5, 5); // Adjusted camera position
-      camera.lookAt(0, 0, 0);
+      camera.lookAt(0, 2.5, 0);
 
       // Renderer with Transparent Background
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(canvasContainer.clientWidth, 400);
-      renderer.setClearColor(0xfff451, 0); // Transparent background
+      renderer.setClearColor(0xffffff, 0); // Transparent background
+      renderer.shadowMap.enabled = true; // Enable Shadows
       canvasContainer.appendChild(renderer.domElement);
-
-      
-      // Create Box
-      updateBox();
+      // Floor (Ground)
+        const floorGeometry = new THREE.PlaneGeometry(20, 20);
+        const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
+        floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        floor.receiveShadow = true;
+        scene.add(floor);
 
       // Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-      directionalLight.position.set(2, 2, 5);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      directionalLight.position.set(10, 10, 5);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
       scene.add(directionalLight);
+
+      // Create Box
+      updateBox();
 
       const pointLight = new THREE.PointLight(0xffffff, 2, 100);
       pointLight.position.set(5, 5, 5);
@@ -62,7 +73,6 @@ let scene, camera, renderer, cube;
               cube.rotation.y += deltaX * 0.01; // Rotate horizontally
               cube.rotation.x += deltaY * 0.01; // Rotate vertically
           }
-
           previousMousePosition = { x: e.clientX, y: e.clientY };
       });
   }
@@ -81,75 +91,44 @@ let scene, camera, renderer, cube;
       material = new THREE.MeshStandardMaterial({ map: texture, color: color });
 
       cube = new THREE.Mesh(geometry, material);
+      cube.position.y = width / 2; // Adjust height to sit on the floor
+      cube.castShadow = true;
       scene.add(cube);
   }
 
   // Event Listener for Modal Open
   document.getElementById('customizeModal').addEventListener('shown.bs.modal', initThreeJs);
 
-  // Controls Event Listeners
-  document.getElementById('length').addEventListener('input', (e) => {
-      length = parseFloat(e.target.value);
-      updateBox();
-  });
-
-  document.getElementById('width').addEventListener('input', (e) => {
-      width = parseFloat(e.target.value);
-      updateBox();
-  });
-
-  document.getElementById('depth').addEventListener('input', (e) => {
-      depth = parseFloat(e.target.value);
-      updateBox();
-  });
-
-  document.getElementById('color').addEventListener('input', (e) => {
-      color = e.target.value;
-      updateBox();
-  });
+    // Box Control Events
+    ['length', 'width', 'depth', 'color'].forEach(id => {
+        document.getElementById(id).addEventListener('input', (e) => {
+            if (id === 'color') {
+                color = e.target.value;
+            } else {
+                if (!isNaN(parseFloat(e.target.value))) {
+                    if (id === 'length') length = parseFloat(e.target.value);
+                    if (id === 'width') width = parseFloat(e.target.value);
+                    if (id === 'depth') depth = parseFloat(e.target.value);
+                }
+            }
+            updateBox();
+        });
+    });
 
   // Movement and Rotation Controls
-    document.getElementById('front').addEventListener('click', () => {
-      rotateCube(0, 0); // Front face
-  });
+  ['front', 'back', 'left', 'right', 'top', 'bottom'].forEach((id, i) => {
+    document.getElementById(id).addEventListener('click', () => {
+        const rotations = [
+            [0, 0], [Math.PI, 0], [0, -Math.PI / 2], [0, Math.PI / 2], [-Math.PI / 2, 0], [Math.PI / 2, 0]
+        ];
+        gsap.to(cube.rotation, { x: rotations[i][0], y: rotations[i][1], duration: 0.8, ease: "power2.out" });
+    });
+});
 
-  document.getElementById('back').addEventListener('click', () => {
-      rotateCube(Math.PI, 0); // Back face
-  });
 
-  document.getElementById('left').addEventListener('click', () => {
-      rotateCube(0, -Math.PI / 2); // Left face
-  });
-
-  document.getElementById('right').addEventListener('click', () => {
-      rotateCube(0, Math.PI / 2); // Right face
-  });
-
-  document.getElementById('top').addEventListener('click', () => {
-      rotateCube(-Math.PI / 2, 0); // Top face
-  });
-
-  document.getElementById('bottom').addEventListener('click', () => {
-      rotateCube(Math.PI / 2, 0); // Bottom face
-  });
-
-  function rotateCube(xRotation, yRotation) {
-      if (cube) {
-          // Use GSAP for smooth rotation (optional, include GSAP library)
-          gsap.to(cube.rotation, { x: xRotation, y: yRotation, duration: 0.8, ease: "power2.out" });
-
-          // If GSAP is not used, directly set rotation:
-          // cube.rotation.set(xRotation, yRotation, 0);
-      }
-  }
-
-  document.getElementById('rotateLeft').addEventListener('click', () => {
-      cube.rotation.y += 0.1;
-  });
-
-  document.getElementById('rotateRight').addEventListener('click', () => {
-      cube.rotation.y -= 0.1;
-  });
+// Manual Rotation Controls
+document.getElementById('rotateLeft').addEventListener('click', () => cube.rotation.y += 0.1);
+document.getElementById('rotateRight').addEventListener('click', () => cube.rotation.y -= 0.1);
 
   // New Features: Upload Image & Input Text
 document.getElementById('uploadImage').addEventListener('change', (e) => {
