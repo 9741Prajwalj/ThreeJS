@@ -21,20 +21,34 @@ let scene, camera, renderer, cube, floor;
       renderer.setClearColor(0xffffff, 0); // Brown background
       canvasContainer.appendChild(renderer.domElement);
 
-      // Lighting
+      // Ambient Light
       const ambientLight = new THREE.AmbientLight(0x8B4513, 0.8);
       scene.add(ambientLight);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-      directionalLight.position.set(10, 10, 5);
-      scene.add(directionalLight);
+    // Directional Lights for 4 directions
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight1.position.set(10, 10, 10); // Top-right-front
+    scene.add(directionalLight1);
 
-      // Create Box
-      updateBox();
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight2.position.set(-10, 10, 10); // Top-left-front
+    scene.add(directionalLight2);
 
-      const pointLight = new THREE.PointLight(0x8B4513, 2, 100);
-      pointLight.position.set(5, 5, 5);
-      scene.add(pointLight);
+    const directionalLight3 = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight3.position.set(10, 10, -10); // Top-right-back
+    scene.add(directionalLight3);
+
+    const directionalLight4 = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight4.position.set(-10, 10, -10); // Top-left-back
+    scene.add(directionalLight4);
+
+    // Create Box
+    updateBox();
+
+    // Point Light (optional, for additional lighting)
+    const pointLight = new THREE.PointLight(0x8B4513, 2, 100);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
 
       // Animation
       function animate() {
@@ -106,7 +120,6 @@ const facePositions = {
 ['front', 'back', 'left', 'right', 'top', 'bottom'].forEach(id => {
     document.getElementById(id).addEventListener('click', () => {
         const target = facePositions[id];
-        
         gsap.to(camera.position, {
             x: target.position[0],
             y: target.position[1],
