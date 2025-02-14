@@ -1,4 +1,3 @@
-
 let scene, camera, renderer, cube, floor;
   let geometry, material;
   let length = 5, width = 5, depth = 5, color = "#7A4B1F"; // Default values
@@ -135,19 +134,39 @@ function rotateBox() {
     requestAnimationFrame(rotateBox);
 }
 
+// Zoom Controls
+document.getElementById('zoomIn').addEventListener('click', () => {
+    length *= 1.1;
+    width *= 1.1;
+    depth *= 1.1;
+    updateBox();
+});
+
+document.getElementById('zoomOut').addEventListener('click', () => {
+    length *= 0.9;
+    width *= 0.9;
+    depth *= 0.9;
+    updateBox();
+});
+
   // New Features: Upload Image & Input Text
 document.getElementById('uploadImage').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-      const reader = new FileReader();
-      reader.onload = function(event) {
-          const textureLoader = new THREE.TextureLoader();
-          const uploadedTexture = textureLoader.load(event.target.result);
-          cube.material.map = uploadedTexture;
-          cube.material.needsUpdate = true;
-      };
-      reader.readAsDataURL(file);
-  }
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const textureLoader = new THREE.TextureLoader();
+            const uploadedTexture = textureLoader.load(event.target.result);
+
+            // Get the front-facing index
+            const faceIndex = getFrontFacingFace();
+            if (faceIndex !== null) {
+                cube.material[faceIndex].map = uploadedTexture;
+                cube.material[faceIndex].needsUpdate = true;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
 });
 
 document.getElementById('textInput').addEventListener('input', (e) => {
