@@ -12,23 +12,14 @@ let scene, camera, renderer, cube, floor;
       // Scene & Camera
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / 400, 0.1, 1000);
-      camera.position.set(5, 5, 5); // Adjusted camera position
-      camera.lookAt(0, 2.5, 0);
+      camera.position.set(10, 10, 10); // Adjusted camera position
+      camera.lookAt(0, 0, 0);
 
       // Renderer with Transparent Background
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(canvasContainer.clientWidth, 400);
       renderer.setClearColor(0xffffff, 0); // Brown background
-      renderer.shadowMap.enabled = true; // Enable Shadows
       canvasContainer.appendChild(renderer.domElement);
-      // Floor (Ground)
-        const floorGeometry = new THREE.PlaneGeometry(20, 20);
-        const floorMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
-        floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.y = 0;
-        floor.receiveShadow = true;
-        scene.add(floor);
 
       // Lighting
       const ambientLight = new THREE.AmbientLight(0x8B4513, 0.8);
@@ -36,8 +27,6 @@ let scene, camera, renderer, cube, floor;
 
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
       directionalLight.position.set(10, 10, 5);
-      directionalLight.castShadow = true;
-      directionalLight.shadow.mapSize.set(2048, 2048);
       scene.add(directionalLight);
 
       // Create Box
@@ -85,7 +74,7 @@ let scene, camera, renderer, cube, floor;
 
       cube = new THREE.Mesh(geometry, material);
       cube.position.y = width / 2; // Adjust height to sit on the floor
-      cube.castShadow = true;
+      cube.castShadow = false;
       scene.add(cube);
   }
 
@@ -104,13 +93,30 @@ let scene, camera, renderer, cube, floor;
     });
 });
 
-  // Movement and Rotation Controls
-  ['front', 'back', 'left', 'right', 'top', 'bottom'].forEach((id, i) => {
+// Movement and Rotation Controls with Camera Adjustment
+const facePositions = {
+    front: { position: [0, 2.5, 10], lookAt: [0, 2.5, 0] },
+    back: { position: [0, 2.5, -10], lookAt: [0, 2.5, 0] },
+    left: { position: [-10, 2.5, 0], lookAt: [0, 2.5, 0] },
+    right: { position: [10, 2.5, 0], lookAt: [0, 2.5, 0] },
+    top: { position: [0, 12, 0], lookAt: [0, 2.5, 0] },
+    bottom: { position: [0, -5, 0], lookAt: [0, 2.5, 0] }
+};
+
+['front', 'back', 'left', 'right', 'top', 'bottom'].forEach(id => {
     document.getElementById(id).addEventListener('click', () => {
-        const rotations = [
-            [0, 0], [Math.PI, 0], [0, -Math.PI / 2], [0, Math.PI / 2], [-Math.PI / 2, 0], [Math.PI / 2, 0]
-        ];
-        gsap.to(cube.rotation, { x: rotations[i][0], y: rotations[i][1], duration: 0.8, ease: "power2.out" });
+        const target = facePositions[id];
+        
+        gsap.to(camera.position, {
+            x: target.position[0],
+            y: target.position[1],
+            z: target.position[2],
+            duration: 1,
+            ease: "power2.out",
+            onUpdate: () => {
+                camera.lookAt(new THREE.Vector3(...target.lookAt));
+            }
+        });
     });
 });
 
@@ -129,17 +135,11 @@ function rotateBox() {
 }
 
 // Zoom Controls
-document.getElementById('zoomIn').addEventListener('click', () => {
-    length *= 1.1;
-    width *= 1.1;
-    depth *= 1.1;
+document.getElementById('zoomIn').addEventListener('click', () => {length *= 1.1;width *= 1.1;depth *= 1.1;
     updateBox();
 });
 
-document.getElementById('zoomOut').addEventListener('click', () => {
-    length *= 0.9;
-    width *= 0.9;
-    depth *= 0.9;
+document.getElementById('zoomOut').addEventListener('click', () => {length *= 0.9;width *= 0.9;depth *= 0.9;
     updateBox();
 });
 
