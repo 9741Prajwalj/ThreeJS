@@ -1,6 +1,6 @@
 let scene, camera, renderer, cube, floor;
   let geometry, material;
-  let length = 5, width = 5, depth = 5, color = "#7A4B1F"; // Default values
+  let length = 5, width = 5, depth = 5; // Default values
   let isDragging = false; // Track if the mouse is dragging
   let previousMousePosition = { x: 0, y: 0 }; // Track previous mouse position for rotation
   let isRotating = false;
@@ -18,7 +18,7 @@ let scene, camera, renderer, cube, floor;
       // Renderer with Transparent Background
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(canvasContainer.clientWidth, 400);
-      renderer.setClearColor(0xffffff, 0); // Transparent background
+      renderer.setClearColor(0xffffff, 0); // Brown background
       renderer.shadowMap.enabled = true; // Enable Shadows
       canvasContainer.appendChild(renderer.domElement);
       // Floor (Ground)
@@ -31,7 +31,7 @@ let scene, camera, renderer, cube, floor;
         scene.add(floor);
 
       // Lighting
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      const ambientLight = new THREE.AmbientLight(0x8B4513, 0.8);
       scene.add(ambientLight);
 
       const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -43,7 +43,7 @@ let scene, camera, renderer, cube, floor;
       // Create Box
       updateBox();
 
-      const pointLight = new THREE.PointLight(0xffffff, 2, 100);
+      const pointLight = new THREE.PointLight(0x8B4513, 2, 100);
       pointLight.position.set(5, 5, 5);
       scene.add(pointLight);
 
@@ -81,7 +81,7 @@ let scene, camera, renderer, cube, floor;
 
       // Update Geometry
       geometry = new THREE.BoxGeometry(length, width, depth);
-      material = new THREE.MeshStandardMaterial({ map: texture, color: color });
+      material = new THREE.MeshStandardMaterial({ map: texture, color: 0x7A4B1F });
 
       cube = new THREE.Mesh(geometry, material);
       cube.position.y = width / 2; // Adjust height to sit on the floor
@@ -93,20 +93,16 @@ let scene, camera, renderer, cube, floor;
   document.getElementById('customizeModal').addEventListener('shown.bs.modal', initThreeJs);
 
     // Box Control Events
-    ['length', 'width', 'depth', 'color'].forEach(id => {
-        document.getElementById(id).addEventListener('input', (e) => {
-            if (id === 'color') {
-                color = e.target.value;
-            } else {
-                if (!isNaN(parseFloat(e.target.value))) {
-                    if (id === 'length') length = parseFloat(e.target.value);
-                    if (id === 'width') width = parseFloat(e.target.value);
-                    if (id === 'depth') depth = parseFloat(e.target.value);
-                }
-            }
-            updateBox();
-        });
+    ['length', 'width', 'depth'].forEach(id => {
+    document.getElementById(id).addEventListener('input', (e) => {
+        if (!isNaN(parseFloat(e.target.value))) {
+            if (id === 'length') length = parseFloat(e.target.value);
+            if (id === 'width') width = parseFloat(e.target.value);
+            if (id === 'depth') depth = parseFloat(e.target.value);
+        }
+        updateBox();
     });
+});
 
   // Movement and Rotation Controls
   ['front', 'back', 'left', 'right', 'top', 'bottom'].forEach((id, i) => {
@@ -128,9 +124,7 @@ document.getElementById('rotate').addEventListener('click', () => {
 
 function rotateBox() {
     if (!isRotating) return;
-    
     cube.rotation.y += 0.003; // Slow rotation speed
-    
     requestAnimationFrame(rotateBox);
 }
 
@@ -151,38 +145,55 @@ document.getElementById('zoomOut').addEventListener('click', () => {
 
   // New Features: Upload Image & Input Text
 document.getElementById('uploadImage').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const textureLoader = new THREE.TextureLoader();
-            const uploadedTexture = textureLoader.load(event.target.result);
-
-            // Get the front-facing index
-            const faceIndex = getFrontFacingFace();
-            if (faceIndex !== null) {
-                cube.material[faceIndex].map = uploadedTexture;
-                cube.material[faceIndex].needsUpdate = true;
-            }
-        };
-        reader.readAsDataURL(file);
-    }
+  const file = e.target.files[0];
+  if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+          const textureLoader = new THREE.TextureLoader();
+          const uploadedTexture = textureLoader.load(event.target.result);
+          cube.material.map = uploadedTexture;
+          cube.material.color.set(color);
+          cube.material.needsUpdate = true;
+      };
+      reader.readAsDataURL(file);
+  }
 });
 
 document.getElementById('textInput').addEventListener('input', (e) => {
-  const text = e.target.value;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 256;
-  canvas.height = 256;
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "black";
-  ctx.font = "20px Arial";
-  ctx.fillText(text, 50, 100);
+    const text = e.target.value;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 256;
+    canvas.height = 256;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = document.getElementById('textColor').value; // Get text color from input
+    ctx.font = "20px Arial";
+    ctx.fillText(text, 50, 100);
 
-  const textureLoader = new THREE.TextureLoader();
-  const textTexture = new THREE.CanvasTexture(canvas);
-  cube.material.map = textTexture;
-  cube.material.needsUpdate = true;
+    const textureLoader = new THREE.TextureLoader();
+    const textTexture = new THREE.CanvasTexture(canvas);
+    cube.material.map = textTexture;
+    cube.material.needsUpdate = true;
+});
+
+// Text Color Change
+document.getElementById('textColor').addEventListener('input', (e) => {
+    const text = document.getElementById('textInput').value;
+    if (text) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 256;
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = e.target.value; // New text color
+        ctx.font = "20px Arial";
+        ctx.fillText(text, 50, 100);
+
+        const textureLoader = new THREE.TextureLoader();
+        const textTexture = new THREE.CanvasTexture(canvas);
+        cube.material.map = textTexture;
+        cube.material.needsUpdate = true;
+    }
 });
