@@ -6,15 +6,12 @@ const scene = new THREE.Scene();
 
 // add objects to the scene
 const cubeGeometry = new THREE.BoxGeometry(1,1,1)
-const cubeMaterial = new THREE.MeshBasicMaterial({color:"red"})
+const cubeMaterial = new THREE.MeshBasicMaterial({color:"red", wireframe:true})
 
-const cubeMesh = new THREE.Mesh(
-  cubeGeometry,
-  cubeMaterial
-)
+const cubeMesh = new THREE.Mesh(cubeGeometry,cubeMaterial);
 scene.add(cubeMesh);
 
-cubeMesh.position.y = 1
+// cubeMesh.rotation.x = THREE.MathUtils.degToRad(50)
 
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
@@ -50,4 +47,4 @@ const renderloop = () => {
   window.requestAnimationFrame(renderloop)
 }
 
-renderloop()
+renderloop();
